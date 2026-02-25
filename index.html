@@ -3,96 +3,270 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pharmacy Scheduler - จองเวร</title>
+    <title>Pharmacy Scheduler</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
         body { background-color: #f4f7f6; font-family: 'Sarabun', sans-serif; }
-        .booking-card { max-width: 500px; margin: 40px auto; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); background: white; }
+        .card-container { max-width: 800px; margin: 30px auto; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .nav-tabs .nav-link { color: #495057; font-weight: 500; }
+        .nav-tabs .nav-link.active { color: #0d6efd; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="booking-card">
-        <h3 class="text-center text-primary mb-4">ลงเวลาจองเวรเภสัชกร</h3>
+<div class="container card-container">
+    <h3 class="text-center text-primary mb-4">ระบบจัดการเวรเภสัชกร</h3>
+    
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="booking-tab" data-bs-toggle="tab" data-bs-target="#booking" type="button" role="tab">ลงจองเวร</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="schedule-tab" data-bs-toggle="tab" data-bs-target="#schedule" type="button" role="tab">ตารางเวรปัจจุบัน</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">ตั้งค่าระบบ</button>
+        </li>
+    </ul>
+
+    <div class="tab-content mt-4" id="myTabContent">
         
-        <form id="shiftForm">
-            <div class="mb-3">
-                <label class="form-label">วันที่ลงเวร</label>
-                <input type="date" class="form-control" id="shiftDate" required>
+        <div class="tab-pane fade show active" id="booking" role="tabpanel">
+            <form id="shiftForm">
+                <div class="mb-3">
+                    <label class="form-label">วันที่ลงเวร</label>
+                    <input type="date" class="form-control" id="shiftDate" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">ชื่อเภสัชกร</label>
+                    <select class="form-select" id="pharmacistName" required>
+                        <option value="">กำลังโหลดข้อมูล...</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">ประเภทเวร</label>
+                    <select class="form-select" id="shiftType" required>
+                        <option value="">กำลังโหลดข้อมูล...</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary w-100" id="submitBookingBtn">บันทึกเวร</button>
+            </form>
+            <div id="bookingAlert" class="mt-3"></div>
+        </div>
+
+        <div class="tab-pane fade" id="schedule" role="tabpanel">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>วันที่</th>
+                            <th>ชื่อเภสัชกร</th>
+                            <th>ประเภทเวร</th>
+                            <th>ชั่วโมง</th>
+                        </tr>
+                    </thead>
+                    <tbody id="shiftTableBody">
+                        <tr><td colspan="4" class="text-center">กำลังโหลดข้อมูล...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-end mt-3">
+                 <a href="https://docs.google.com/spreadsheets/d/1yJLzwNMwNzpz3N3hjpTQMxaRn1IF3nSCBalktV4n7CA/edit" target="_blank" class="btn btn-outline-secondary btn-sm">เปิด Google Sheet (Admin)</a>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="settings" role="tabpanel">
+            <div class="card mb-4">
+                <div class="card-header bg-light"><strong>เพิ่มรายชื่อเภสัชกรใหม่</strong></div>
+                <div class="card-body">
+                    <form id="addStaffForm" class="row g-2 align-items-center">
+                        <div class="col-md-5">
+                            <input type="text" class="form-control" id="newStaffName" placeholder="ชื่อ-สกุล" required>
+                        </div>
+                        <div class="col-md-5">
+                            <select class="form-select" id="newStaffType" required>
+                                <option value="Full-time">Full-time (192 ชม.)</option>
+                                <option value="Part-time">Part-time (144 ชม.)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-success w-100" id="submitStaffBtn">เพิ่ม</button>
+                        </div>
+                    </form>
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">ชื่อเภสัชกร</label>
-                <select class="form-select" id="pharmacistName" required>
-                    <option value="" selected disabled>-- เลือกชื่อ --</option>
-                    <option value="Pharma A">Pharma A (Full-time)</option>
-                    <option value="Pharma B">Pharma B (Part-time)</option>
-                </select>
+            <div class="card">
+                <div class="card-header bg-light"><strong>เพิ่มประเภทเวรใหม่</strong></div>
+                <div class="card-body">
+                    <form id="addShiftTypeForm" class="row g-2 align-items-center">
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" id="newTypeName" placeholder="ชื่อเวร (เช่น เช้า, บ่าย)" required>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="number" class="form-control" id="newTypeHours" placeholder="จำนวนชั่วโมง (เช่น 12)" required>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-success w-100" id="submitTypeBtn">เพิ่ม</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-
-            <div class="mb-3">
-                <label class="form-label">ประเภทเวร</label>
-                <select class="form-select" id="shiftType" required>
-                    <option value="" selected disabled>-- เลือกประเภทเวร --</option>
-                    <option value="Incharge">Incharge (07.00 - 19.00)</option>
-                    <option value="Night">Night (19.00 - 07.00)</option>
-                    <option value="OPD_08">OPD (08.00 - 20.00)</option>
-                    <option value="Vacation">พักร้อน (ไม่คิดชั่วโมง)</option>
-                </select>
-            </div>
-
-            <button type="submit" class="btn btn-primary w-100" id="submitBtn">บันทึกเวร</button>
-        </form>
+            <div id="settingsAlert" class="mt-3"></div>
+        </div>
         
-        <div id="alertMessage" class="mt-3"></div>
     </div>
 </div>
 
 <script>
-    // === นำ URL ของ Web App จาก Google Apps Script มาใส่ตรงนี้ ===
+    // URL ของ Web App API ที่คุณเตรียมไว้
     const API_URL = "https://script.google.com/macros/s/AKfycbzkeXJ-2SGSVC3VA-zCQ-Od3HfZRzwvwWzP4hidKk3Jzy0ohbo93Q-ae7grd-aylNqv/exec";
 
+    // ฟังก์ชันสำหรับจัดรูปแบบวันที่ให้อ่านง่าย
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString;
+        return date.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    // โหลดข้อมูลตอนเปิดหน้าเว็บ
+    window.onload = async function() {
+        try {
+            const response = await fetch(API_URL);
+            const data = await response.json();
+            
+            // 1. โหลดรายชื่อเภสัชกรใส่ Dropdown
+            const nameSelect = document.getElementById('pharmacistName');
+            nameSelect.innerHTML = '<option value="" selected disabled>-- เลือกชื่อ --</option>';
+            if(data.staff && data.staff.length > 0) {
+                data.staff.forEach(s => { 
+                    nameSelect.innerHTML += `<option value="${s.Name}">${s.Name} (${s.Type})</option>`; 
+                });
+            } else {
+                nameSelect.innerHTML = '<option value="" disabled>ยังไม่มีรายชื่อในระบบ (กรุณาเพิ่มในตั้งค่า)</option>';
+            }
+
+            // 2. โหลดประเภทเวรใส่ Dropdown
+            const typeSelect = document.getElementById('shiftType');
+            typeSelect.innerHTML = '<option value="" selected disabled>-- เลือกประเภทเวร --</option>';
+            if(data.shiftTypes && data.shiftTypes.length > 0) {
+                data.shiftTypes.forEach(t => { 
+                    typeSelect.innerHTML += `<option value="${t.TypeName}" data-hours="${t.Hours}">${t.TypeName} (${t.Hours} ชม.)</option>`; 
+                });
+            } else {
+                typeSelect.innerHTML = '<option value="" disabled>ยังไม่มีประเภทเวร (กรุณาเพิ่มในตั้งค่า)</option>';
+            }
+
+            // 3. โหลดตารางเวร
+            const tableBody = document.getElementById('shiftTableBody');
+            tableBody.innerHTML = '';
+            
+            if(data.shifts && data.shifts.length > 0) {
+                // จัดเรียงตามวันที่ (ใหม่สุดขึ้นก่อน)
+                data.shifts.sort((a,b) => new Date(b.Date) - new Date(a.Date));
+                
+                data.shifts.forEach(shift => {
+                    const displayDate = formatDate(shift.Date);
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td>${displayDate}</td>
+                            <td>${shift.Name}</td>
+                            <td><span class="badge bg-info text-dark">${shift.Type}</span></td>
+                            <td>${shift.Hours}</td>
+                        </tr>`;
+                });
+            } else {
+                tableBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">ยังไม่มีข้อมูลการจองเวร</td></tr>';
+            }
+
+        } catch (error) {
+            console.error("Error loading data:", error);
+            document.getElementById('shiftTableBody').innerHTML = '<tr><td colspan="4" class="text-center text-danger">ไม่สามารถโหลดข้อมูลได้ กรุณาตรวจสอบการเชื่อมต่อ</td></tr>';
+        }
+    }
+
+    // ฟังก์ชันจัดการแสดง Alert อัตโนมัติ
+    function showAlert(targetElementId, message, type) {
+        const alertBox = document.getElementById(targetElementId);
+        alertBox.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>`;
+    }
+
+    // ฟังก์ชันกลางสำหรับส่งข้อมูล (POST)
+    async function sendData(payload, alertTargetId, btnId) {
+        const btn = document.getElementById(btnId);
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> กำลังบันทึก...';
+        
+        try {
+            const res = await fetch(API_URL, { 
+                method: 'POST', 
+                body: JSON.stringify(payload) 
+            });
+            const result = await res.json();
+            
+            if(result.status === "success") {
+                showAlert(alertTargetId, result.message, 'success');
+                // โหลดหน้าใหม่เพื่อดึงข้อมูลล่าสุดมาแสดง
+                setTimeout(() => location.reload(), 1500); 
+            } else {
+                showAlert(alertTargetId, `เกิดข้อผิดพลาด: ${result.message}`, 'danger');
+            }
+        } catch(e) {
+            showAlert(alertTargetId, "เชื่อมต่อล้มเหลว กรุณาลองใหม่อีกครั้ง", 'danger');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+
+    // การ Submit ฟอร์ม 1: จองเวร
     document.getElementById('shiftForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        
-        const btn = document.getElementById('submitBtn');
-        const alertBox = document.getElementById('alertMessage');
-        btn.disabled = true;
-        btn.innerHTML = 'กำลังบันทึก...';
+        const typeDropdown = document.getElementById('shiftType');
+        const selectedOption = typeDropdown.options[typeDropdown.selectedIndex];
+        const hours = selectedOption.getAttribute('data-hours');
 
-        // เตรียมข้อมูลส่งไปที่ Google Sheet
-        // (สำหรับการพัฒนาต่อยอด ควรเขียน Logic กำหนด StartTime, EndTime, Hours ตาม ShiftType ที่เลือก)
         const payload = {
+            action: "addShift",
             Date: document.getElementById('shiftDate').value,
             Name: document.getElementById('pharmacistName').value,
-            ShiftType: document.getElementById('shiftType').value,
-            StartTime: "08:00", // ตั้งเป็นค่าคงที่ไว้ก่อนสำหรับทดสอบ
-            EndTime: "20:00",
-            Hours: 12
+            ShiftType: typeDropdown.value,
+            StartTime: "ระบุทีหลัง", 
+            EndTime: "ระบุทีหลัง",
+            Hours: parseInt(hours) || 0
         };
+        sendData(payload, 'bookingAlert', 'submitBookingBtn');
+    });
 
-        // ส่งข้อมูลผ่าน API
-        fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if(data.status === "success") {
-                alertBox.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
-                document.getElementById('shiftForm').reset();
-            } else {
-                alertBox.innerHTML = `<div class="alert alert-danger">เกิดข้อผิดพลาด: ${data.message}</div>`;
-            }
-        })
-        .catch(error => {
-            alertBox.innerHTML = `<div class="alert alert-danger">เชื่อมต่อล้มเหลว</div>`;
-        })
-        .finally(() => {
-            btn.disabled = false;
-            btn.innerHTML = 'บันทึกเวร';
-        });
+    // การ Submit ฟอร์ม 2: เพิ่มเภสัชกร
+    document.getElementById('addStaffForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const type = document.getElementById('newStaffType').value;
+        const payload = {
+            action: "addStaff",
+            Name: document.getElementById('newStaffName').value,
+            Type: type,
+            TargetHours: type === "Full-time" ? 192 : 144
+        };
+        sendData(payload, 'settingsAlert', 'submitStaffBtn');
+    });
+
+    // การ Submit ฟอร์ม 3: เพิ่มประเภทเวร
+    document.getElementById('addShiftTypeForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const payload = {
+            action: "addShiftType",
+            TypeName: document.getElementById('newTypeName').value,
+            StartTime: "-",
+            EndTime: "-",
+            Hours: parseInt(document.getElementById('newTypeHours').value)
+        };
+        sendData(payload, 'settingsAlert', 'submitTypeBtn');
     });
 </script>
 
